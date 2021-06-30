@@ -11,20 +11,24 @@
 	import Artwork from '$lib/components/Artwork/Artwork.svelte';
 
 	let layers = [
-		{ id: 1, src: layer1 },
-		{ id: 2, src: layer2 },
-		{ id: 3, src: layer3 },
-		{ id: 4, src: layer4 },
-		{ id: 5, src: layer5 }
+		{ index: 0, id: 1, src: layer1, lock: true },
+		{ index: 1, id: 2, src: layer2, lock: false },
+		{ index: 2, id: 3, src: layer3, lock: false },
+		{ index: 3, id: 4, src: layer4, lock: false },
+		{ index: 4, id: 5, src: layer5, lock: false }
 	];
 
 	function shuffle() {
+		let _layers = [];
 		const old = JSON.stringify(layers);
-		const background = layers[0];
+		const lockLayers = layers.filter(({ lock }) => lock);
+		const noLockLayers = layers.filter(({ lock }) => !lock);
 		do {
-			layers = layers.slice(1).sort(() => Math.random() - 0.5);
-			layers = [background, ...layers];
-		} while (old === JSON.stringify(layers));
+			_layers = [...noLockLayers.sort(() => Math.random() - 0.5)];
+			lockLayers.forEach((l) => _layers.splice(l.index, 0, l));
+			_layers = _layers.map((l, index) => ({ ...l, index }));
+		} while (old === JSON.stringify(_layers));
+		layers = [..._layers];
 	}
 </script>
 
@@ -32,7 +36,7 @@
 	<div class="m-10">
 		<section class="h-auto sm:h-artwork flex flex-col sm:flex-row justify-center items-center">
 			<Artwork {layers} />
-			<Thumbnails {layers} />
+			<Thumbnails bind:layers />
 		</section>
 		<Button class="w-full my-3" label="Mezclar" on:click={shuffle} />
 	</div>
